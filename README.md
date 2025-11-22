@@ -2,6 +2,12 @@
 
 A modern doctor-patient healthcare management system with activity tracking, appointments, and medical records.
 
+## 🚀 Live Demo
+
+**[View Live Application](https://hcl-project-final.vercel.app/)**
+
+> Deployed on Vercel with MongoDB Atlas
+
 ## Architecture
 
 ![Healthcare Portal Architecture](./architecture-diagram.png)
