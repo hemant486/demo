@@ -14,6 +14,7 @@ app.use(
     origin: [
       "http://localhost:3000",
       "http://localhost:5173",
+      "https://hcl-project-final-git-main-hemants-projects-4545bdbc.vercel.app",
       process.env.FRONTEND_URL || "*",
     ],
     credentials: true,
