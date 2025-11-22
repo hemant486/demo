@@ -14,9 +14,27 @@ function Register() {
   const navigate = useNavigate();
   const { register } = useAuth();
 
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+
+    // Validate email format
+    if (!validateEmail(formData.email)) {
+      setError("Please enter a valid email address");
+      return;
+    }
+
+    // Validate password length
+    if (formData.password.length < 6) {
+      setError("Password must be at least 6 characters long");
+      return;
+    }
+
     setLoading(true);
 
     const result = await register(formData);
@@ -69,7 +87,13 @@ function Register() {
               onChange={(e) =>
                 setFormData({ ...formData, email: e.target.value })
               }
+              placeholder="example@email.com"
             />
+            {formData.email && !validateEmail(formData.email) && (
+              <p className="text-red-500 text-sm mt-1">
+                Please enter a valid email address
+              </p>
+            )}
           </div>
 
           <div>
@@ -85,7 +109,13 @@ function Register() {
               onChange={(e) =>
                 setFormData({ ...formData, password: e.target.value })
               }
+              placeholder="Minimum 6 characters"
             />
+            {formData.password && formData.password.length < 6 && (
+              <p className="text-red-500 text-sm mt-1">
+                Password must be at least 6 characters long
+              </p>
+            )}
           </div>
 
           <div>

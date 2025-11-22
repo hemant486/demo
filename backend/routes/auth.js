@@ -3,11 +3,18 @@ const router = express.Router();
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const auth = require("../middleware/auth");
+const { validateRegistration, validateLogin } = require("../utils/validation");
 
 // Register
 router.post("/register", async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
+
+    // Validate input data
+    const validation = validateRegistration({ name, email, password });
+    if (!validation.isValid) {
+      return res.status(400).json({ message: validation.errors.join(", ") });
+    }
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -42,6 +49,12 @@ router.post("/register", async (req, res) => {
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
+
+    // Validate input data
+    const validation = validateLogin({ email, password });
+    if (!validation.isValid) {
+      return res.status(400).json({ message: validation.errors.join(", ") });
+    }
 
     const user = await User.findOne({ email });
     if (!user) {

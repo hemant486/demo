@@ -6,6 +6,7 @@ import {
 } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import Navbar from "./components/Navbar";
+import DoctorNavbar from "./components/DoctorNavbar";
 import PublicNavbar from "./components/PublicNavbar";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
@@ -16,6 +17,10 @@ import MedicalRecords from "./pages/MedicalRecords";
 import HealthInfo from "./pages/HealthInfo";
 import Goals from "./pages/Goals";
 import Profile from "./pages/Profile";
+import DoctorDashboard from "./pages/doctor/DoctorDashboard";
+import DoctorAppointments from "./pages/doctor/DoctorAppointments";
+import DoctorPatients from "./pages/doctor/DoctorPatients";
+import DoctorSchedule from "./pages/doctor/DoctorSchedule";
 
 function AppRoutes() {
   const { user, loading, logout } = useAuth();
@@ -28,39 +33,85 @@ function AppRoutes() {
     );
   }
 
+  const isDoctor = user?.role === "doctor";
+  const defaultRoute = isDoctor ? "/doctor/dashboard" : "/dashboard";
+
   return (
     <Router>
-      {user ? <Navbar user={user} onLogout={logout} /> : <PublicNavbar />}
+      {user ? (
+        isDoctor ? (
+          <DoctorNavbar user={user} onLogout={logout} />
+        ) : (
+          <Navbar user={user} onLogout={logout} />
+        )
+      ) : (
+        <PublicNavbar />
+      )}
       <Routes>
         <Route
           path="/"
-          element={!user ? <Home /> : <Navigate to="/dashboard" />}
+          element={!user ? <Home /> : <Navigate to={defaultRoute} />}
         />
         <Route
           path="/login"
-          element={!user ? <Login /> : <Navigate to="/dashboard" />}
+          element={!user ? <Login /> : <Navigate to={defaultRoute} />}
         />
         <Route
           path="/register"
-          element={!user ? <Register /> : <Navigate to="/dashboard" />}
+          element={!user ? <Register /> : <Navigate to={defaultRoute} />}
         />
+
+        {/* Patient Routes */}
         <Route
           path="/dashboard"
-          element={user ? <Dashboard user={user} /> : <Navigate to="/" />}
+          element={
+            user && !isDoctor ? <Dashboard user={user} /> : <Navigate to="/" />
+          }
         />
         <Route
           path="/appointments"
-          element={user ? <Appointments /> : <Navigate to="/" />}
+          element={user && !isDoctor ? <Appointments /> : <Navigate to="/" />}
         />
         <Route
           path="/records"
-          element={user ? <MedicalRecords /> : <Navigate to="/" />}
+          element={user && !isDoctor ? <MedicalRecords /> : <Navigate to="/" />}
         />
         <Route
           path="/health-info"
-          element={user ? <HealthInfo /> : <Navigate to="/" />}
+          element={user && !isDoctor ? <HealthInfo /> : <Navigate to="/" />}
         />
-        <Route path="/goals" element={user ? <Goals /> : <Navigate to="/" />} />
+        <Route
+          path="/goals"
+          element={user && !isDoctor ? <Goals /> : <Navigate to="/" />}
+        />
+
+        {/* Doctor Routes */}
+        <Route
+          path="/doctor/dashboard"
+          element={
+            user && isDoctor ? (
+              <DoctorDashboard user={user} />
+            ) : (
+              <Navigate to="/" />
+            )
+          }
+        />
+        <Route
+          path="/doctor/appointments"
+          element={
+            user && isDoctor ? <DoctorAppointments /> : <Navigate to="/" />
+          }
+        />
+        <Route
+          path="/doctor/patients"
+          element={user && isDoctor ? <DoctorPatients /> : <Navigate to="/" />}
+        />
+        <Route
+          path="/doctor/schedule"
+          element={user && isDoctor ? <DoctorSchedule /> : <Navigate to="/" />}
+        />
+
+        {/* Shared Routes */}
         <Route
           path="/profile"
           element={user ? <Profile /> : <Navigate to="/" />}

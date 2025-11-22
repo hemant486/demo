@@ -6,10 +6,29 @@ const healthInfoSchema = new mongoose.Schema({
     ref: "User",
     required: true,
   },
+  // Daily Activity
+  steps: {
+    type: Number,
+    default: 0,
+  },
+  activeTime: {
+    type: Number,
+    default: 0,
+  },
+  sleep: {
+    type: Number,
+    default: 0,
+  },
+  // Body Metrics
+  weight: {
+    type: Number,
+  },
+  height: {
+    type: Number,
+  },
   bloodPressure: String,
   heartRate: String,
-  weight: String,
-  height: String,
+  // Medical Information
   allergies: [String],
   medications: [String],
   medicalHistory: String,

@@ -9,9 +9,21 @@ function Login() {
   const navigate = useNavigate();
   const { login } = useAuth();
 
+  const validateEmail = (email) => {
+    const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{3,}$/;
+    return emailRegex.test(email);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+
+    // Validate email format
+    if (!validateEmail(formData.email)) {
+      setError("Please enter a valid email address");
+      return;
+    }
+
     setLoading(true);
 
     const result = await login(formData);
@@ -51,7 +63,13 @@ function Login() {
               onChange={(e) =>
                 setFormData({ ...formData, email: e.target.value })
               }
+              placeholder="example@email.com"
             />
+            {formData.email && !validateEmail(formData.email) && (
+              <p className="text-red-500 text-sm mt-1">
+                Please enter a valid email address
+              </p>
+            )}
           </div>
 
           <div>

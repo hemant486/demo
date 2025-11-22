@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { healthAPI } from "../services/api";
 
 function HealthInfo() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     steps: "",
     activeTime: "",
@@ -44,7 +46,11 @@ function HealthInfo() {
 
     try {
       const data = {
-        ...formData,
+        steps: Number(formData.steps) || 0,
+        activeTime: Number(formData.activeTime) || 0,
+        sleep: Number(formData.sleep) || 0,
+        weight: Number(formData.weight) || null,
+        height: Number(formData.height) || null,
         allergies: formData.allergies
           .split(",")
           .map((a) => a.trim())
@@ -53,12 +59,23 @@ function HealthInfo() {
           .split(",")
           .map((m) => m.trim())
           .filter(Boolean),
+        medicalHistory: formData.medicalHistory || "",
       };
 
-      await healthAPI.updateHealthInfo(data);
+      console.log("Submitting health data:", data);
+      const response = await healthAPI.updateHealthInfo(data);
+      console.log("Response:", response);
       setMessage("Health information updated successfully!");
+
+      // Navigate to dashboard after 1.5 seconds
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 1500);
     } catch (err) {
-      setMessage("Failed to update health information");
+      console.error("Error updating health info:", err);
+      const errorMsg =
+        err.response?.data?.message || "Failed to update health information";
+      setMessage(errorMsg);
     } finally {
       setSaving(false);
     }

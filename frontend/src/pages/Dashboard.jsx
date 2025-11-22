@@ -50,7 +50,7 @@ function Dashboard({ user }) {
           </div>
         </div>
 
-        <div className="grid md:grid-cols-4 gap-6 mb-6">
+        <div className="grid md:grid-cols-3 lg:grid-cols-6 gap-6 mb-6">
           <div className="bg-gradient-to-br from-violet-50 to-purple-100 border border-violet-200 rounded-xl shadow-sm p-6 hover:shadow-md transition">
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-lg font-semibold text-violet-800">Steps</h3>
@@ -110,6 +110,48 @@ function Dashboard({ user }) {
               {loading ? "..." : healthInfo?.sleep || "0"}
             </p>
             <p className="text-indigo-600 text-sm mt-1">hours</p>
+          </div>
+
+          <div className="bg-gradient-to-br from-emerald-50 to-green-100 border border-emerald-200 rounded-xl shadow-sm p-6 hover:shadow-md transition">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-lg font-semibold text-emerald-800">Weight</h3>
+              <svg
+                className="w-8 h-8 text-emerald-500"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M10 2a1 1 0 011 1v1.323l3.954 1.582 1.599-.8a1 1 0 01.894 1.79l-1.233.616 1.738 5.42a1 1 0 01-.285 1.05A3.989 3.989 0 0115 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.715-5.349L11 6.477V16h2a1 1 0 110 2H7a1 1 0 110-2h2V6.477L6.237 7.582l1.715 5.349a1 1 0 01-.285 1.05A3.989 3.989 0 015 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.738-5.42-1.233-.617a1 1 0 01.894-1.788l1.599.799L9 4.323V3a1 1 0 011-1z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </div>
+            <p className="text-3xl font-bold text-emerald-900">
+              {loading ? "..." : healthInfo?.weight || "0"}
+            </p>
+            <p className="text-emerald-600 text-sm mt-1">kg</p>
+          </div>
+
+          <div className="bg-gradient-to-br from-teal-50 to-cyan-100 border border-teal-200 rounded-xl shadow-sm p-6 hover:shadow-md transition">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-lg font-semibold text-teal-800">Height</h3>
+              <svg
+                className="w-8 h-8 text-teal-500"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11 4a1 1 0 10-2 0v4a1 1 0 102 0V7zm-3 1a1 1 0 10-2 0v3a1 1 0 102 0V8zM8 9a1 1 0 00-2 0v2a1 1 0 102 0V9z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </div>
+            <p className="text-3xl font-bold text-teal-900">
+              {loading ? "..." : healthInfo?.height || "0"}
+            </p>
+            <p className="text-teal-600 text-sm mt-1">cm</p>
           </div>
 
           <div className="bg-gradient-to-br from-cyan-50 to-sky-100 border border-cyan-200 rounded-xl shadow-sm p-6 hover:shadow-md transition">
