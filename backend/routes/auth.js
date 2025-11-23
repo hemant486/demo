@@ -97,8 +97,6 @@ router.get("/me", auth, async (req, res) => {
   }
 });
 
-module.exports = router;
-
 // Get all patients (for doctors)
 router.get("/patients", auth, async (req, res) => {
   try {
@@ -111,3 +109,17 @@ router.get("/patients", auth, async (req, res) => {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 });
+
+// Get all doctors (for patients)
+router.get("/doctors", auth, async (req, res) => {
+  try {
+    const doctors = await User.find({ role: "doctor" }).select(
+      "name email _id"
+    );
+    res.json(doctors);
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
+
+module.exports = router;

@@ -1,43 +1,48 @@
 import { useState, useEffect } from "react";
+import axios from "../../services/api";
 
 export default function DoctorPatients() {
   const [patients, setPatients] = useState([]);
+  const [appointments, setAppointments] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // TODO: Fetch patients from API
-    // Mock data for now
-    setTimeout(() => {
-      setPatients([
-        {
-          id: 1,
-          name: "John Doe",
-          email: "john@example.com",
-          phone: "+1234567890",
-          lastVisit: "2024-01-15",
-          status: "Active",
-        },
-        {
-          id: 2,
-          name: "Jane Smith",
-          email: "jane@example.com",
-          phone: "+1234567891",
-          lastVisit: "2024-01-10",
-          status: "Active",
-        },
-        {
-          id: 3,
-          name: "Mike Johnson",
-          email: "mike@example.com",
-          phone: "+1234567892",
-          lastVisit: "2023-12-20",
-          status: "Inactive",
-        },
-      ]);
-      setLoading(false);
-    }, 500);
+    fetchData();
   }, []);
+
+  const fetchData = async () => {
+    try {
+      const [patientsRes, appointmentsRes] = await Promise.all([
+        axios.get("/auth/patients"),
+        axios.get("/appointments"),
+      ]);
+      setPatients(patientsRes.data);
+      setAppointments(appointmentsRes.data);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getLastVisit = (patientId) => {
+    const patientAppointments = appointments
+      .filter(
+        (apt) => apt.patientId?._id === patientId && apt.status === "completed"
+      )
+      .sort((a, b) => new Date(b.date) - new Date(a.date));
+    return patientAppointments[0]?.date || null;
+  };
+
+  const getPatientStatus = (patientId) => {
+    const lastVisit = getLastVisit(patientId);
+    if (!lastVisit) return "New";
+    const daysSinceVisit = Math.floor(
+      (new Date() - new Date(lastVisit)) / (1000 * 60 * 60 * 24)
+    );
+    return daysSinceVisit < 90 ? "Active" : "Inactive";
+  };
 
   const filteredPatients = patients.filter((patient) =>
     patient.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -117,47 +122,58 @@ export default function DoctorPatients() {
                     </td>
                   </tr>
                 ) : (
-                  filteredPatients.map((patient) => (
-                    <tr key={patient.id} className="border-b hover:bg-gray-50">
-                      <td className="py-3 px-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                            <span className="text-blue-600 font-semibold">
-                              {patient.name.charAt(0)}
+                  filteredPatients.map((patient) => {
+                    const lastVisit = getLastVisit(patient._id);
+                    const status = getPatientStatus(patient._id);
+                    return (
+                      <tr
+                        key={patient._id}
+                        className="border-b hover:bg-gray-50"
+                      >
+                        <td className="py-3 px-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                              <span className="text-blue-600 font-semibold">
+                                {patient.name.charAt(0)}
+                              </span>
+                            </div>
+                            <span className="font-medium text-gray-900">
+                              {patient.name}
                             </span>
                           </div>
-                          <span className="font-medium text-gray-900">
-                            {patient.name}
+                        </td>
+                        <td className="py-3 px-4 text-gray-600">
+                          {patient.email}
+                        </td>
+                        <td className="py-3 px-4 text-gray-600">
+                          {patient.phone || "N/A"}
+                        </td>
+                        <td className="py-3 px-4 text-gray-600">
+                          {lastVisit
+                            ? new Date(lastVisit).toLocaleDateString()
+                            : "No visits"}
+                        </td>
+                        <td className="py-3 px-4">
+                          <span
+                            className={`px-3 py-1 rounded-full text-xs font-medium ${
+                              status === "Active"
+                                ? "bg-green-100 text-green-700"
+                                : status === "New"
+                                ? "bg-blue-100 text-blue-700"
+                                : "bg-gray-100 text-gray-700"
+                            }`}
+                          >
+                            {status}
                           </span>
-                        </div>
-                      </td>
-                      <td className="py-3 px-4 text-gray-600">
-                        {patient.email}
-                      </td>
-                      <td className="py-3 px-4 text-gray-600">
-                        {patient.phone}
-                      </td>
-                      <td className="py-3 px-4 text-gray-600">
-                        {new Date(patient.lastVisit).toLocaleDateString()}
-                      </td>
-                      <td className="py-3 px-4">
-                        <span
-                          className={`px-3 py-1 rounded-full text-xs font-medium ${
-                            patient.status === "Active"
-                              ? "bg-green-100 text-green-700"
-                              : "bg-gray-100 text-gray-700"
-                          }`}
-                        >
-                          {patient.status}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4">
-                        <button className="text-blue-600 hover:text-blue-700 font-medium text-sm">
-                          View Details
-                        </button>
-                      </td>
-                    </tr>
-                  ))
+                        </td>
+                        <td className="py-3 px-4">
+                          <button className="text-blue-600 hover:text-blue-700 font-medium text-sm">
+                            View Details
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>

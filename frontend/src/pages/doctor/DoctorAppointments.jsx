@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import axios from "../../services/api";
 
 export default function DoctorAppointments() {
   const [appointments, setAppointments] = useState([]);
@@ -6,53 +7,27 @@ export default function DoctorAppointments() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // TODO: Fetch appointments from API
-    // Mock data for now
-    setTimeout(() => {
-      setAppointments([
-        {
-          id: 1,
-          patientName: "John Doe",
-          date: "2024-01-20",
-          time: "9:00 AM",
-          type: "Regular Checkup",
-          status: "confirmed",
-        },
-        {
-          id: 2,
-          patientName: "Jane Smith",
-          date: "2024-01-20",
-          time: "10:30 AM",
-          type: "Follow-up Visit",
-          status: "confirmed",
-        },
-        {
-          id: 3,
-          patientName: "Mike Johnson",
-          date: "2024-01-20",
-          time: "2:00 PM",
-          type: "Consultation",
-          status: "pending",
-        },
-        {
-          id: 4,
-          patientName: "Sarah Williams",
-          date: "2024-01-21",
-          time: "11:00 AM",
-          type: "Regular Checkup",
-          status: "pending",
-        },
-      ]);
-      setLoading(false);
-    }, 500);
+    fetchAppointments();
   }, []);
 
-  const handleStatusChange = (id, newStatus) => {
-    setAppointments(
-      appointments.map((apt) =>
-        apt.id === id ? { ...apt, status: newStatus } : apt
-      )
-    );
+  const fetchAppointments = async () => {
+    try {
+      const res = await axios.get("/appointments");
+      setAppointments(res.data);
+    } catch (error) {
+      console.error("Error fetching appointments:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleStatusChange = async (id, newStatus) => {
+    try {
+      await axios.patch(`/appointments/${id}`, { status: newStatus });
+      fetchAppointments();
+    } catch (error) {
+      console.error("Error updating appointment:", error);
+    }
   };
 
   const filteredAppointments =
@@ -139,20 +114,24 @@ export default function DoctorAppointments() {
             </div>
           ) : (
             filteredAppointments.map((appointment) => (
-              <div key={appointment.id} className="card">
+              <div key={appointment._id} className="card">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
                       <span className="text-blue-600 font-semibold text-lg">
-                        {appointment.patientName.charAt(0)}
+                        {appointment.patientId?.name?.charAt(0) || "P"}
                       </span>
                     </div>
                     <div>
                       <h3 className="font-semibold text-gray-900 text-lg">
-                        {appointment.patientName}
+                        {appointment.patientId?.name || "Unknown Patient"}
                       </h3>
                       <p className="text-gray-600 text-sm">
-                        {appointment.type}
+                        {appointment.patientId?.email}
+                      </p>
+                      <p className="text-gray-700 text-sm mt-1">
+                        <span className="font-medium">Reason:</span>{" "}
+                        {appointment.reason}
                       </p>
                     </div>
                   </div>
@@ -174,7 +153,9 @@ export default function DoctorAppointments() {
                             ? "bg-green-100 text-green-700"
                             : appointment.status === "pending"
                             ? "bg-yellow-100 text-yellow-700"
-                            : "bg-blue-100 text-blue-700"
+                            : appointment.status === "completed"
+                            ? "bg-blue-100 text-blue-700"
+                            : "bg-red-100 text-red-700"
                         }`}
                       >
                         {appointment.status.charAt(0).toUpperCase() +
@@ -185,7 +166,7 @@ export default function DoctorAppointments() {
                         <div className="flex gap-2">
                           <button
                             onClick={() =>
-                              handleStatusChange(appointment.id, "confirmed")
+                              handleStatusChange(appointment._id, "confirmed")
                             }
                             className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition"
                           >
@@ -193,7 +174,7 @@ export default function DoctorAppointments() {
                           </button>
                           <button
                             onClick={() =>
-                              handleStatusChange(appointment.id, "cancelled")
+                              handleStatusChange(appointment._id, "cancelled")
                             }
                             className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition"
                           >
@@ -205,7 +186,7 @@ export default function DoctorAppointments() {
                       {appointment.status === "confirmed" && (
                         <button
                           onClick={() =>
-                            handleStatusChange(appointment.id, "completed")
+                            handleStatusChange(appointment._id, "completed")
                           }
                           className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition"
                         >

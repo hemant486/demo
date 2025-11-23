@@ -28,6 +28,8 @@ export const authAPI = {
   register: (data) => api.post("/auth/register", data),
   login: (data) => api.post("/auth/login", data),
   getMe: () => api.get("/auth/me"),
+  getDoctors: () => api.get("/auth/doctors"),
+  getPatients: () => api.get("/auth/patients"),
 };
 
 export const healthAPI = {

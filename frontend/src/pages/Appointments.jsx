@@ -3,9 +3,11 @@ import axios from "../services/api";
 
 function Appointments() {
   const [appointments, setAppointments] = useState([]);
+  const [doctors, setDoctors] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
+    doctorId: "",
     date: "",
     time: "",
     reason: "",
@@ -13,7 +15,17 @@ function Appointments() {
 
   useEffect(() => {
     fetchAppointments();
+    fetchDoctors();
   }, []);
+
+  const fetchDoctors = async () => {
+    try {
+      const res = await axios.get("/auth/doctors");
+      setDoctors(res.data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   const fetchAppointments = async () => {
     try {
@@ -31,10 +43,11 @@ function Appointments() {
     try {
       await axios.post("/appointments", formData);
       setShowForm(false);
-      setFormData({ date: "", time: "", reason: "" });
+      setFormData({ doctorId: "", date: "", time: "", reason: "" });
       fetchAppointments();
     } catch (error) {
       console.error(error);
+      alert("Failed to book appointment. Please try again.");
     }
   };
 
@@ -82,6 +95,26 @@ function Appointments() {
           <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
             <h2 className="text-xl font-bold mb-4">Book New Appointment</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-gray-700 font-medium mb-2">
+                  Select Doctor
+                </label>
+                <select
+                  required
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={formData.doctorId}
+                  onChange={(e) =>
+                    setFormData({ ...formData, doctorId: e.target.value })
+                  }
+                >
+                  <option value="">Choose a doctor...</option>
+                  {doctors.map((doctor) => (
+                    <option key={doctor._id} value={doctor._id}>
+                      Dr. {doctor.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-gray-700 font-medium mb-2">
@@ -90,6 +123,7 @@ function Appointments() {
                   <input
                     type="date"
                     required
+                    min={new Date().toISOString().split("T")[0]}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     value={formData.date}
                     onChange={(e) =>
@@ -119,6 +153,7 @@ function Appointments() {
                 <textarea
                   required
                   rows="3"
+                  placeholder="Describe your symptoms or reason for visit..."
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={formData.reason}
                   onChange={(e) =>
@@ -146,7 +181,7 @@ function Appointments() {
               <div key={apt._id} className="bg-white rounded-lg shadow-lg p-6">
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
+                    <div className="flex items-center gap-3 mb-3">
                       <h3 className="text-xl font-bold text-gray-800">
                         {new Date(apt.date).toLocaleDateString()}
                       </h3>
@@ -158,6 +193,25 @@ function Appointments() {
                         {apt.status}
                       </span>
                     </div>
+
+                    {apt.doctorId && (
+                      <div className="mb-3 flex items-center gap-2">
+                        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                          <span className="text-blue-600 font-semibold">
+                            {apt.doctorId.name.charAt(0)}
+                          </span>
+                        </div>
+                        <div>
+                          <p className="text-gray-800 font-medium">
+                            Dr. {apt.doctorId.name}
+                          </p>
+                          <p className="text-gray-500 text-sm">
+                            {apt.doctorId.email}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
                     <p className="text-gray-600 mb-2">
                       <span className="font-medium">Time:</span> {apt.time}
                     </p>
