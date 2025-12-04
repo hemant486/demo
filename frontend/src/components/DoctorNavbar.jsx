@@ -47,10 +47,16 @@ export default function DoctorNavbar({ user, onLogout }) {
             >
               Schedule
             </Link>
+            <Link
+              to="/doctor/profile"
+              className="text-gray-700 hover:text-blue-600 font-medium transition"
+            >
+              Profile Settings
+            </Link>
 
             <div className="flex items-center gap-4 ml-4 pl-4 border-l">
               <Link
-                to="/profile"
+                to="/doctor/profile"
                 className="flex items-center gap-2 text-gray-700 hover:text-blue-600 transition"
               >
                 <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">

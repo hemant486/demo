@@ -21,7 +21,24 @@ router.post("/register", async (req, res) => {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    const user = new User({ name, email, password, role });
+    // Create user with default values for doctors
+    const userData = { name, email, password, role };
+
+    // If registering as doctor, add default availability and profile
+    if (role === "doctor") {
+      userData.specialization = "General Practice";
+      userData.experience = 0;
+      userData.consultationFee = 100;
+      userData.availability = {
+        monday: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
+        tuesday: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
+        wednesday: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
+        thursday: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
+        friday: ["09:00", "10:00", "11:00", "14:00", "15:00"],
+      };
+    }
+
+    const user = new User(userData);
     await user.save();
 
     const token = jwt.sign(
@@ -92,6 +109,29 @@ router.get("/me", auth, async (req, res) => {
   try {
     const user = await User.findById(req.user.userId).select("-password");
     res.json(user);
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
+
+// Update doctor profile
+router.patch("/profile", auth, async (req, res) => {
+  try {
+    const { specialization, experience, consultationFee, availability } =
+      req.body;
+
+    const updateData = {};
+    if (specialization) updateData.specialization = specialization;
+    if (experience !== undefined) updateData.experience = experience;
+    if (consultationFee !== undefined)
+      updateData.consultationFee = consultationFee;
+    if (availability) updateData.availability = availability;
+
+    const user = await User.findByIdAndUpdate(req.user.userId, updateData, {
+      new: true,
+    }).select("-password");
+
+    res.json({ message: "Profile updated", user });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }

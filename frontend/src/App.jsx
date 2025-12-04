@@ -22,6 +22,7 @@ import DoctorAppointments from "./pages/doctor/DoctorAppointments";
 import DoctorPatients from "./pages/doctor/DoctorPatients";
 import DoctorSchedule from "./pages/doctor/DoctorSchedule";
 import PatientDetail from "./pages/doctor/PatientDetail";
+import DoctorProfile from "./pages/doctor/DoctorProfile";
 
 function AppRoutes() {
   const { user, loading, logout } = useAuth();
@@ -114,6 +115,10 @@ function AppRoutes() {
         <Route
           path="/doctor/schedule"
           element={user && isDoctor ? <DoctorSchedule /> : <Navigate to="/" />}
+        />
+        <Route
+          path="/doctor/profile"
+          element={user && isDoctor ? <DoctorProfile /> : <Navigate to="/" />}
         />
 
         {/* Shared Routes */}
