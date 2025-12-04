@@ -1,273 +1,210 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { healthAPI } from "../services/api";
+import axios from "../services/api";
 
 function HealthInfo() {
-  const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    steps: "",
-    activeTime: "",
-    sleep: "",
-    weight: "",
-    height: "",
-    allergies: "",
-    medications: "",
-    medicalHistory: "",
-  });
+  const [healthInfo, setHealthInfo] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState("");
 
   useEffect(() => {
-    healthAPI
-      .getHealthInfo()
-      .then((res) => {
-        if (res.data) {
-          setFormData({
-            steps: res.data.steps || "",
-            activeTime: res.data.activeTime || "",
-            sleep: res.data.sleep || "",
-            weight: res.data.weight || "",
-            height: res.data.height || "",
-            allergies: res.data.allergies?.join(", ") || "",
-            medications: res.data.medications?.join(", ") || "",
-            medicalHistory: res.data.medicalHistory || "",
-          });
-        }
-      })
-      .catch((err) => console.error(err))
-      .finally(() => setLoading(false));
+    fetchHealthInfo();
   }, []);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setSaving(true);
-    setMessage("");
-
+  const fetchHealthInfo = async () => {
     try {
-      const data = {
-        steps: Number(formData.steps) || 0,
-        activeTime: Number(formData.activeTime) || 0,
-        sleep: Number(formData.sleep) || 0,
-        weight: Number(formData.weight) || null,
-        height: Number(formData.height) || null,
-        allergies: formData.allergies
-          .split(",")
-          .map((a) => a.trim())
-          .filter(Boolean),
-        medications: formData.medications
-          .split(",")
-          .map((m) => m.trim())
-          .filter(Boolean),
-        medicalHistory: formData.medicalHistory || "",
-      };
-
-      console.log("Submitting health data:", data);
-      const response = await healthAPI.updateHealthInfo(data);
-      console.log("Response:", response);
-      setMessage("Health information updated successfully!");
-
-      // Navigate to dashboard after 1.5 seconds
-      setTimeout(() => {
-        navigate("/dashboard");
-      }, 1500);
-    } catch (err) {
-      console.error("Error updating health info:", err);
-      const errorMsg =
-        err.response?.data?.message || "Failed to update health information";
-      setMessage(errorMsg);
+      const res = await axios.get("/health");
+      setHealthInfo(res.data);
+    } catch (error) {
+      console.error(error);
     } finally {
-      setSaving(false);
+      setLoading(false);
     }
   };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        Loading...
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-teal-50 via-green-50 to-cyan-50 py-8">
-      <div className="container mx-auto px-4 max-w-3xl">
-        <div className="bg-white rounded-lg shadow-lg p-8 border border-teal-100">
-          <h1 className="text-3xl font-bold text-teal-900 mb-6">
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="container mx-auto px-4 max-w-4xl">
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold text-gray-800">
             Health Information
           </h1>
-
-          {message && (
-            <div
-              className={`px-4 py-3 rounded mb-4 ${
-                message.includes("success")
-                  ? "bg-green-100 border border-green-400 text-green-700"
-                  : "bg-red-100 border border-red-400 text-red-700"
-              }`}
-            >
-              {message}
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="bg-gradient-to-r from-violet-50 to-purple-50 p-4 rounded-lg border border-violet-200">
-              <h3 className="text-lg font-semibold text-violet-900 mb-3">
-                Daily Activity
-              </h3>
-              <div className="grid md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-violet-800 font-medium mb-2">
-                    Steps
-                  </label>
-                  <input
-                    type="number"
-                    placeholder="10000"
-                    className="w-full px-4 py-2 border border-violet-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
-                    value={formData.steps}
-                    onChange={(e) =>
-                      setFormData({ ...formData, steps: e.target.value })
-                    }
-                  />
-                  <p className="text-xs text-violet-600 mt-1">steps/day</p>
-                </div>
-
-                <div>
-                  <label className="block text-orange-800 font-medium mb-2">
-                    Active Time
-                  </label>
-                  <input
-                    type="number"
-                    placeholder="30"
-                    className="w-full px-4 py-2 border border-orange-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-                    value={formData.activeTime}
-                    onChange={(e) =>
-                      setFormData({ ...formData, activeTime: e.target.value })
-                    }
-                  />
-                  <p className="text-xs text-orange-600 mt-1">minutes/day</p>
-                </div>
-
-                <div>
-                  <label className="block text-indigo-800 font-medium mb-2">
-                    Sleep
-                  </label>
-                  <input
-                    type="number"
-                    step="0.5"
-                    placeholder="8"
-                    className="w-full px-4 py-2 border border-indigo-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    value={formData.sleep}
-                    onChange={(e) =>
-                      setFormData({ ...formData, sleep: e.target.value })
-                    }
-                  />
-                  <p className="text-xs text-indigo-600 mt-1">hours/night</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-gradient-to-r from-emerald-50 to-teal-50 p-4 rounded-lg border border-emerald-200">
-              <h3 className="text-lg font-semibold text-emerald-900 mb-3">
-                Body Metrics
-              </h3>
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-emerald-800 font-medium mb-2">
-                    Weight (kg)
-                  </label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    placeholder="70"
-                    className="w-full px-4 py-2 border border-emerald-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                    value={formData.weight}
-                    onChange={(e) =>
-                      setFormData({ ...formData, weight: e.target.value })
-                    }
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-teal-800 font-medium mb-2">
-                    Height (cm)
-                  </label>
-                  <input
-                    type="number"
-                    placeholder="175"
-                    className="w-full px-4 py-2 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
-                    value={formData.height}
-                    onChange={(e) =>
-                      setFormData({ ...formData, height: e.target.value })
-                    }
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-gradient-to-r from-rose-50 to-pink-50 p-4 rounded-lg border border-rose-200">
-              <h3 className="text-lg font-semibold text-rose-900 mb-3">
-                Medical Information
-              </h3>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-rose-800 font-medium mb-2">
-                    Allergies (comma separated)
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Peanuts, Penicillin"
-                    className="w-full px-4 py-2 border border-rose-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500"
-                    value={formData.allergies}
-                    onChange={(e) =>
-                      setFormData({ ...formData, allergies: e.target.value })
-                    }
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-pink-800 font-medium mb-2">
-                    Medications (comma separated)
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Aspirin, Vitamin D"
-                    className="w-full px-4 py-2 border border-pink-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
-                    value={formData.medications}
-                    onChange={(e) =>
-                      setFormData({ ...formData, medications: e.target.value })
-                    }
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-rose-800 font-medium mb-2">
-                    Medical History
-                  </label>
-                  <textarea
-                    rows="4"
-                    placeholder="Enter your medical history..."
-                    className="w-full px-4 py-2 border border-rose-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500"
-                    value={formData.medicalHistory}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        medicalHistory: e.target.value,
-                      })
-                    }
-                  />
-                </div>
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={saving}
-              className="w-full bg-gradient-to-r from-teal-600 to-green-600 hover:from-teal-700 hover:to-green-700 text-white font-bold py-3 rounded-lg transition disabled:opacity-50 shadow-sm"
-            >
-              {saving ? "Saving..." : "Save Health Information"}
-            </button>
-          </form>
+          <div className="mt-4 bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
+            <p className="text-blue-700">
+              <strong>📋 Note:</strong> Your health information is managed by
+              your doctor. If you need any updates, please consult with your
+              healthcare provider during your appointment.
+            </p>
+          </div>
         </div>
+
+        {!healthInfo || !healthInfo._id ? (
+          <div className="bg-white rounded-lg shadow-lg p-8 text-center">
+            <svg
+              className="w-16 h-16 text-gray-300 mx-auto mb-4"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+              <path
+                fillRule="evenodd"
+                d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z"
+                clipRule="evenodd"
+              />
+            </svg>
+            <h3 className="text-xl font-semibold text-gray-700 mb-2">
+              No Health Information Yet
+            </h3>
+            <p className="text-gray-500">
+              Your doctor will add your health information during your
+              appointments.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {/* Daily Activity */}
+            <div className="bg-gradient-to-r from-violet-50 to-purple-50 rounded-lg shadow-lg p-6 border border-violet-200">
+              <h2 className="text-xl font-bold text-violet-900 mb-4">
+                📊 Daily Activity
+              </h2>
+              <div className="grid md:grid-cols-3 gap-4">
+                <div className="bg-white rounded-lg p-4">
+                  <p className="text-sm text-gray-600 mb-1">Steps</p>
+                  <p className="text-2xl font-bold text-violet-600">
+                    {healthInfo.steps || 0}
+                  </p>
+                  <p className="text-xs text-gray-500">steps/day</p>
+                </div>
+                <div className="bg-white rounded-lg p-4">
+                  <p className="text-sm text-gray-600 mb-1">Active Time</p>
+                  <p className="text-2xl font-bold text-orange-600">
+                    {healthInfo.activeTime || 0}
+                  </p>
+                  <p className="text-xs text-gray-500">minutes/day</p>
+                </div>
+                <div className="bg-white rounded-lg p-4">
+                  <p className="text-sm text-gray-600 mb-1">Sleep</p>
+                  <p className="text-2xl font-bold text-indigo-600">
+                    {healthInfo.sleep || 0}
+                  </p>
+                  <p className="text-xs text-gray-500">hours/night</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Body Metrics */}
+            <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-lg shadow-lg p-6 border border-emerald-200">
+              <h2 className="text-xl font-bold text-emerald-900 mb-4">
+                📏 Body Metrics
+              </h2>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="bg-white rounded-lg p-4">
+                  <p className="text-sm text-gray-600 mb-1">Weight</p>
+                  <p className="text-2xl font-bold text-emerald-600">
+                    {healthInfo.weight || "N/A"}
+                  </p>
+                  <p className="text-xs text-gray-500">kg</p>
+                </div>
+                <div className="bg-white rounded-lg p-4">
+                  <p className="text-sm text-gray-600 mb-1">Height</p>
+                  <p className="text-2xl font-bold text-emerald-600">
+                    {healthInfo.height || "N/A"}
+                  </p>
+                  <p className="text-xs text-gray-500">cm</p>
+                </div>
+                <div className="bg-white rounded-lg p-4">
+                  <p className="text-sm text-gray-600 mb-1">Blood Pressure</p>
+                  <p className="text-2xl font-bold text-red-600">
+                    {healthInfo.bloodPressure || "N/A"}
+                  </p>
+                  <p className="text-xs text-gray-500">mmHg</p>
+                </div>
+                <div className="bg-white rounded-lg p-4">
+                  <p className="text-sm text-gray-600 mb-1">Heart Rate</p>
+                  <p className="text-2xl font-bold text-red-600">
+                    {healthInfo.heartRate || "N/A"}
+                  </p>
+                  <p className="text-xs text-gray-500">bpm</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Medical Information */}
+            <div className="bg-gradient-to-r from-rose-50 to-pink-50 rounded-lg shadow-lg p-6 border border-rose-200">
+              <h2 className="text-xl font-bold text-rose-900 mb-4">
+                💊 Medical Information
+              </h2>
+              <div className="space-y-4">
+                <div className="bg-white rounded-lg p-4">
+                  <p className="text-sm font-medium text-gray-700 mb-2">
+                    Allergies
+                  </p>
+                  {healthInfo.allergies && healthInfo.allergies.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {healthInfo.allergies.map((allergy, index) => (
+                        <span
+                          key={index}
+                          className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm"
+                        >
+                          {allergy}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 text-sm">
+                      No allergies recorded
+                    </p>
+                  )}
+                </div>
+
+                <div className="bg-white rounded-lg p-4">
+                  <p className="text-sm font-medium text-gray-700 mb-2">
+                    Current Medications
+                  </p>
+                  {healthInfo.medications &&
+                  healthInfo.medications.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {healthInfo.medications.map((medication, index) => (
+                        <span
+                          key={index}
+                          className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm"
+                        >
+                          {medication}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 text-sm">
+                      No medications recorded
+                    </p>
+                  )}
+                </div>
+
+                <div className="bg-white rounded-lg p-4">
+                  <p className="text-sm font-medium text-gray-700 mb-2">
+                    Medical History
+                  </p>
+                  <p className="text-gray-700">
+                    {healthInfo.medicalHistory || "No medical history recorded"}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {healthInfo.lastUpdated && (
+              <div className="text-center text-sm text-gray-500">
+                Last updated by your doctor:{" "}
+                {new Date(healthInfo.lastUpdated).toLocaleDateString()}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

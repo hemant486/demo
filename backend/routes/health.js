@@ -13,9 +13,17 @@ router.get("/", auth, async (req, res) => {
   }
 });
 
-// Create/Update health info
+// Create/Update health info (RESTRICTED - Only doctors can update)
 router.post("/", auth, async (req, res) => {
   try {
+    // Block patients from updating their own health info
+    if (req.user.role !== "doctor") {
+      return res.status(403).json({
+        message:
+          "Only doctors can update health information. Please consult your doctor for updates.",
+      });
+    }
+
     console.log("Received health data:", req.body);
     console.log("User ID:", req.user.userId);
 
